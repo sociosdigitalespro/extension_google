@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SnapEdit – Editor</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <div class="toolbar" id="toolbar">
+    <div class="toolbar-brand">
+      <span class="brand-icon">📸</span>
+      <span class="brand-name">SnapEdit</span>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Tools -->
+    <div class="tool-group">
+      <button class="tool-btn active" id="toolCrop" data-tool="crop" title="Recorte rectangular (C)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 2 6 6 2 6"/>
+          <polyline points="18 22 18 18 22 18"/>
+          <path d="M2 14h6v6"/>
+          <path d="M14 2v6h6"/>
+          <rect x="6" y="6" width="12" height="12" stroke-dasharray="3 2"/>
+        </svg>
+        <span>Recorte</span>
+        <kbd>C</kbd>
+      </button>
+
+      <button class="tool-btn" id="toolErase" data-tool="erase" title="Borrado por color adyacente (E)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 20H7L3 16l9-9 8 8-2.5 2.5"/>
+          <path d="M6.5 17.5l6-6"/>
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke-dasharray="3 2"/>
+        </svg>
+        <span>Borrado</span>
+        <kbd>E</kbd>
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Actions -->
+    <div class="action-group">
+      <button class="action-btn undo-btn" id="btnUndo" title="Deshacer (Ctrl+Z)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 14L4 9l5-5"/>
+          <path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>
+        </svg>
+        <span>Deshacer</span>
+        <span class="undo-count" id="undoCount"></span>
+      </button>
+
+      <button class="action-btn save-btn" id="btnSave" title="Guardar imagen (Ctrl+S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Guardar</span>
+      </button>
+    </div>
+
+    <div class="toolbar-spacer"></div>
+
+    <!-- Info -->
+    <div class="info-panel">
+      <span class="info-label" id="infoTool">Herramienta: <strong>Recorte</strong></span>
+      <span class="info-label" id="infoDims"></span>
+    </div>
+  </div>
+
+  <!-- Hint bar -->
+  <div class="hint-bar" id="hintBar">
+    <div class="hint-content" id="hintContent">
+      <span class="hint-icon">✂️</span>
+      <span id="hintText">Haz clic y arrastra para seleccionar el área de recorte. La imagen se recortará automáticamente al soltar.</span>
+    </div>
+  </div>
+
+  <!-- Canvas area -->
+  <div class="canvas-wrapper" id="canvasWrapper">
+    <div class="canvas-container" id="canvasContainer">
+      <canvas id="mainCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p>Cargando captura...</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="editor.js"></script>
+</body>
+</html>
