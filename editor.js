@@ -81,6 +81,16 @@ function pushHistory() {
 function undo() {
   if (history.length === 0) return;
   const snap = history.pop();
+
+  // Si las dimensiones cambiaron (ej. debido a un recorte), restaurarlas
+  if (mainCanvas.width !== snap.width || mainCanvas.height !== snap.height) {
+    mainCanvas.width = snap.width;
+    mainCanvas.height = snap.height;
+    overlayCanvas.width = snap.width;
+    overlayCanvas.height = snap.height;
+    centreCanvas(snap.width, snap.height);
+  }
+
   ctx.putImageData(snap, 0, 0);
   updateUndoBtn();
   updateDimensions();
