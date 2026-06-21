@@ -70,8 +70,11 @@ html, body {
   flex-shrink: 0;
 }
 
-.brand-icon {
-  font-size: 20px;
+.brand-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .brand-name {
