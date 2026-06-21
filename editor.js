@@ -34,7 +34,7 @@ let currentX = 0, currentY = 0;
 // ─── Hints ────────────────────────────────────────────────────────────────────
 const HINTS = {
   crop:  { icon: '✂️',  text: 'Arrastra para seleccionar el área de recorte. Se aplicará automáticamente al soltar el ratón.' },
-  erase: { icon: '🪄', text: 'Arrastra para seleccionar el área a borrar. El borde exterior determinará el color de relleno.' },
+  erase: { icon: '🪄', text: 'Selecciona el área a borrar. Arrastra cubriendo un poco más allá del objeto (incluyendo bordes/sombras) para rellenar con el fondo.' },
 };
 
 // ─── Toast helper ─────────────────────────────────────────────────────────────
@@ -216,11 +216,12 @@ function applyErase(x, y, w, h) {
 
 /**
  * Samples a ring of pixels OUTSIDE the selection rectangle and returns
- * the average RGBA.
+ * the median RGBA (dominant color).
  *
  * Strategy:
- *   - Take a 4px-wide band around all 4 sides
- *   - Average all sampled pixels
+ *   - Batch read the image data of the selection area expanded by BAND pixels
+ *   - Collect pixels in the 6px-wide band around the selection
+ *   - Sort and find median to filter out shadows/borders/isolated colors
  */
 function sampleBorderColor(rx, ry, rw, rh) {
   const BAND  = 6; // pixels wide to sample outside
@@ -228,13 +229,33 @@ function sampleBorderColor(rx, ry, rw, rh) {
   const cw    = mainCanvas.width;
   const ch    = mainCanvas.height;
 
-  let r = 0, g = 0, b = 0, a = 0, count = 0;
+  const xStart = Math.max(0, rx - BAND);
+  const yStart = Math.max(0, ry - BAND);
+  const xEnd = Math.min(cw, rx + rw + BAND);
+  const yEnd = Math.min(ch, ry + rh + BAND);
+  const width = xEnd - xStart;
+  const height = yEnd - yStart;
+
+  if (width <= 0 || height <= 0) return { r: 255, g: 255, b: 255, a: 255 };
+
+  const imgData = ctx.getImageData(xStart, yStart, width, height);
+  const data = imgData.data;
+
+  const rValues = [];
+  const gValues = [];
+  const bValues = [];
+  const aValues = [];
 
   function sample(sx, sy) {
-    if (sx < 0 || sy < 0 || sx >= cw || sy >= ch) return;
-    const data = ctx.getImageData(sx, sy, 1, 1).data;
-    r += data[0]; g += data[1]; b += data[2]; a += data[3];
-    count++;
+    if (sx < xStart || sy < yStart || sx >= xEnd || sy >= yEnd) return;
+    const localX = sx - xStart;
+    const localY = sy - yStart;
+    const idx = (localY * width + localX) * 4;
+    
+    rValues.push(data[idx]);
+    gValues.push(data[idx + 1]);
+    bValues.push(data[idx + 2]);
+    aValues.push(data[idx + 3]);
   }
 
   // Top band
@@ -254,19 +275,27 @@ function sampleBorderColor(rx, ry, rw, rh) {
     for (let bx = rx + rw; bx <= rx + rw + BAND; bx += STEP) sample(bx, by);
   }
 
-  if (count === 0) {
+  if (rValues.length === 0) {
     // Fallback: sample the entire perimeter of the selection itself
     for (let px = rx; px < rx + rw; px += STEP) { sample(px, ry); sample(px, ry + rh - 1); }
     for (let py = ry; py < ry + rh; py += STEP) { sample(rx, py); sample(rx + rw - 1, py); }
   }
 
-  if (count === 0) return { r: 255, g: 255, b: 255, a: 255 };
+  if (rValues.length === 0) return { r: 255, g: 255, b: 255, a: 255 };
+
+  // Sort values to find the median (dominant color)
+  rValues.sort((x, y) => x - y);
+  gValues.sort((x, y) => x - y);
+  bValues.sort((x, y) => x - y);
+  aValues.sort((x, y) => x - y);
+
+  const mid = Math.floor(rValues.length / 2);
 
   return {
-    r: Math.round(r / count),
-    g: Math.round(g / count),
-    b: Math.round(b / count),
-    a: Math.round(a / count),
+    r: rValues[mid],
+    g: gValues[mid],
+    b: bValues[mid],
+    a: aValues[mid]
   };
 }
 

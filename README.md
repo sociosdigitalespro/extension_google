@@ -144,11 +144,11 @@ El editor utiliza **dos capas de canvas** superpuestas:
 
 ### Algoritmo de borrado (Smart Erase)
 
-1. Al definir la selección rectangular, se muestrea un anillo de **6px de ancho fuera del rectángulo** seleccionado (en los 4 lados).
-2. Se calcula el **promedio RGBA** de todos los píxeles muestreados.
-3. El interior del rectángulo se rellena con ese color promedio usando `ctx.fillRect`.
+1. Al definir la selección rectangular, se realiza una única lectura en lote (`ctx.getImageData`) de la región de selección ampliada con un anillo de **6px de ancho fuera del rectángulo** seleccionado (en los 4 lados).
+2. Se extrae el canal de color de cada píxel de este anillo y se calcula la **mediana** (color dominante) para los valores RGBA por separado. Esto actúa como un filtro inteligente de ruido que descarta bordes contrastantes o sombras exteriores del elemento seleccionado.
+3. El interior del rectángulo se rellena con ese color mediano usando `ctx.fillRect`.
 
-> Funciona mejor con fondos de color uniforme o gradientes suaves (como capturas de páginas web, dashboards, etc.).
+> Funciona de manera sumamente eficiente y es idóneo para eliminar elementos en fondos uniformes o de un solo tono sin dejar marcas residuales de bordes o sombras.
 
 ### Historial de deshacer
 
